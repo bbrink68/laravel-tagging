@@ -161,7 +161,7 @@ class TaggingUtil {
 			$tag = new Tag;
 			$tag->name = $tagString;
             $tag->slug = $tagSlug;
-            $tag->department = $this->getCurrentUserDept();
+            $tag->department = self::getCurrentUserDept();
 			$tag->suggest = false;
 			$tag->save();
 		}
@@ -194,7 +194,7 @@ class TaggingUtil {
     /**
      * Get Authed Users Department
      */
-    private function getCurrentUserDept() {
+    public static function getCurrentUserDept() {
         $user = JWTAuth::parseToken()->toUser();
         if ($user) {
             return $user->dept;
