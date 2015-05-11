@@ -190,7 +190,8 @@ trait TaggableTrait {
         $tagAlreadyExists = TaggingUtil::tagExists($tagName, $tagDept);
 
         // (Support Only) If Not Exists But Is Training Super or If Already Exists
-        if ( ! $tagDept == 'support' || ((! $tagAlreadyExists && $user->hasRole('Training Supervisor')) || $tagAlreadyExists)) {
+        if ( (! $tagDept == 'support' && ! $tagDept == 'sales') ||
+            ((! $tagAlreadyExists && $user->hasRole('Training Supervisor')) || $tagAlreadyExists)) {
 
             // Normalize Name
             $normalizer = config('tagging.normalizer');
