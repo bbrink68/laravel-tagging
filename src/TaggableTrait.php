@@ -176,6 +176,7 @@ trait TaggableTrait {
 	 *
      * @param $tagName string
      * @param $tagDept string
+     * @throws ForbiddenTagCreation
 	 */
 	private function addTag($tagName, $tagDept = 'support')
 	{
@@ -188,8 +189,8 @@ trait TaggableTrait {
         // Find out if already exists.
         $tagAlreadyExists = TaggingUtil::tagExists($tagName, $tagDept);
 
-        // If Not Exists But Is Training Super or If Already Exists
-        if ((! $tagAlreadyExists && $user->hasRole('Training Supervisor')) || $tagAlreadyExists) {
+        // (Support Only) If Not Exists But Is Training Super or If Already Exists
+        if ( ! $tagDept == 'support' || ((! $tagAlreadyExists && $user->hasRole('Training Supervisor')) || $tagAlreadyExists)) {
 
             // Normalize Name
             $normalizer = config('tagging.normalizer');
