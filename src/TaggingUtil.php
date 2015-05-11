@@ -44,7 +44,8 @@ class TaggingUtil {
 	public static function incrementCount($tagString, $tagDept, $tagSlug, $count) {
 		if($count <= 0) { return; }
 		
-		$tag = Tag::where('slug', '=', $tagSlug)->first();
+		$tag = Tag::where('slug', '=', $tagSlug)
+            ->where('department', $tagDept)->first();
 
 		if ( ! $tag) {
 			$tag = new Tag;
@@ -63,14 +64,16 @@ class TaggingUtil {
      * Private! Please do not call this function directly, let the Tag library use it.
      * Decrement count of tag by one. This function will create tag record if it does not exist.
      *
-     * @param string $tagString
-     * @param string $tagSlug
+     * @param string  $tagString
+     * @param string  $tagDept
+     * @param string  $tagSlug
      * @param integer $count
      */
-	public static function decrementCount($tagString, $tagSlug, $count) {
+	public static function decrementCount($tagString, $tagDept, $tagSlug, $count) {
 		if($count <= 0) { return; }
 		
-		$tag = Tag::where('slug', '=', $tagSlug)->first();
+		$tag = Tag::where('slug', '=', $tagSlug)
+            ->where('department', $tagDept)->first();
 	
 		if($tag) {
 			$tag->count = $tag->count - $count;

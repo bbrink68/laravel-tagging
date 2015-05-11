@@ -31,18 +31,19 @@ trait TaggableTrait {
 	{
 		return $this->morphMany('Conner\Tagging\Tagged', 'taggable');
 	}
-	
-	/**
-	 * Perform the action of tagging the model with the given string
-	 *
-	 * @param $tagName string or array
-	 */
-	public function tag($tagNames)
+
+    /**
+     * Perform the action of tagging the model with the given string
+     *
+     * @param string|array  $tagNames
+     * @param string        $tagDept
+     */
+	public function tag($tagNames, $tagDept = 'support')
 	{
 		$tagNames = TaggingUtil::makeTagArray($tagNames);
 		
 		foreach($tagNames as $tagName) {
-			$this->addTag($tagName);
+			$this->addTag($tagName, $tagDept);
 		}
 	}
 	
@@ -79,18 +80,20 @@ trait TaggableTrait {
 		
 		return $tagSlugs;
 	}
-	
-	/**
-	 * Remove the tag from this model
-	 *
-	 * @param $tagName string or array (or null to remove all tags)
-	 */
-	public function untag($tagNames=null)
+
+    /**
+     * Remove the tag from this model
+     *
+     * @param null|string|array $tagNames
+     * @param string $tagDept
+     */
+	public function untag($tagNames = null, $tagDept = 'support')
 	{
 		if(is_null($tagNames)) {
 			$currentTagNames = $this->tagNames();
+
 			foreach($currentTagNames as $tagName) {
-				$this->removeTag($tagName);
+				$this->removeTag($tagName, $tagDept);
 			}
 			return;
 		}
@@ -98,7 +101,7 @@ trait TaggableTrait {
 		$tagNames = TaggingUtil::makeTagArray($tagNames);
 		
 		foreach($tagNames as $tagName) {
-			$this->removeTag($tagName);
+			$this->removeTag($tagName, $tagDept);
 		}
 	}
 
@@ -117,7 +120,7 @@ trait TaggableTrait {
 		$additions = array_diff($tagNames, $currentTagNames);
 		
 		foreach($deletions as $tagName) {
-			$this->removeTag($tagName);
+			$this->removeTag($tagName, $tagDept);
 		}
 		foreach($additions as $tagName) {
 			$this->addTag($tagName, $tagDept);
@@ -195,8 +198,8 @@ trait TaggableTrait {
             : $displayer;
 
 		$tagged = new Tagged(array(
-			'tag_name'=>call_user_func($displayer, $tagName),
-			'tag_slug'=>$tagSlug,
+			'tag_name' => call_user_func($displayer, $tagName),
+			'tag_slug' => $tagSlug,
 		));
 		
 		$this->tagged()->save($tagged);
@@ -204,15 +207,17 @@ trait TaggableTrait {
         // Increment Count & Save If Not Exists
 		TaggingUtil::incrementCount($tagName, $tagDept, $tagSlug, 1);
 	}
-	
-	/**
-	 * Removes a single tag
-	 *
-	 * @param $tagName string
-	 */
-	private function removeTag($tagName)
+
+    /**
+     * Removes a single tag
+     *
+     * @param $tagName string
+     * @param string $tagDept
+     */
+	private function removeTag($tagName, $tagDept = 'support')
 	{
 		$tagName = trim($tagName);
+        $tagDept = strtolower(trim($tagDept));
 		
 		$normalizer = config('tagging.normalizer');
         $normalizer = empty($normalizer) 
@@ -220,9 +225,10 @@ trait TaggableTrait {
             : $normalizer;
 		
 		$tagSlug = call_user_func($normalizer, $tagName);
-		
-		if($count = $this->tagged()->where('tag_slug', '=', $tagSlug)->delete()) {
-			TaggingUtil::decrementCount($tagName, $tagSlug, $count);
+
+        // If can find tag - decrement count
+		if($count = $this->tagged()->where('tag_slug', '=', $tagSlug)->where('department', $tagDept)->delete()) {
+			TaggingUtil::decrementCount($tagName, $tagDept, $tagSlug, $count);
 		}
 	}
 
