@@ -7,12 +7,34 @@ use Illuminate\Database\Eloquent\Model as Eloquent;
  * Copyright (C) 2014 Robert Conner
  */
 class Tag extends Eloquent {
+    
+    /**
+     * Table Name
+     */
+    protected $table = 'tagging_tags';
 
-	protected $table = 'tagging_tags';
-	public $timestamps = false;
-	protected $softDelete = false;
-	public $fillable = ['name'];
-	
+    /**
+     * Timestamps
+     */
+    public $timestamps = false;
+
+    /**
+     * Soft Deletes
+     */
+    protected $softDelete = false;
+
+    /**
+     * Fillable Columns
+     */
+    public $fillable = [
+        'name',
+        'department'
+    ];
+
+    /**
+     * Constructor
+     * @param array $attributes
+     */
 	public function __construct(array $attributes = array()) {
 		parent::__construct($attributes);
 		
@@ -20,19 +42,29 @@ class Tag extends Eloquent {
 			$this->connection = $connection;
 		}
 	}
-	
+
+    /**
+     * Save New Tag
+     */
 	public function save(array $options = array()) {
-		$validator = \Validator::make(
+        
+        // Create New Validator
+        $validator = \Validator::make(
 			array('name' => $this->name),
 			array('name' => 'required|min:1')
 		);
-		
-		if($validator->passes()) {
+
+        // Good Validation
+        if($validator->passes()) {
+            // Get Normalizer & Normalize
 			$normalizer = config('tagging.normalizer');
-			$normalizer = empty($normalizer) ? '\Conner\Tagging\TaggingUtil::slug' : $normalizer;
+            $normalizer = empty($normalizer) 
+                ? '\Conner\Tagging\TaggingUtil::slug' 
+                : $normalizer;
 			
 			$this->slug = call_user_func($normalizer, $this->name);
-			parent::save($options);
+            // Save New Tag
+            parent::save($options);
 		} else {
 			throw new \Exception('Tag Name is required');
 		}
@@ -48,10 +80,14 @@ class Tag extends Eloquent {
 	/**
 	 * Name auto-mutator
 	 */
-	public function setNameAttribute($value) {
+    public function setNameAttribute($value) {
+        // Get Displayer from Config
 		$displayer = config('tagging.displayer');
-		$displayer = empty($displayer) ? '\Illuminate\Support\Str::title' : $displayer;
-		
+        $displayer = empty($displayer) 
+            ? '\Illuminate\Support\Str::title' 
+            : $displayer;
+
+        // Set Name to Prettier Version
 		$this->attributes['name'] = call_user_func($displayer, $value);
 	}
 	

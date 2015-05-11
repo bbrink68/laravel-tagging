@@ -13,7 +13,8 @@ trait TaggableTrait {
 	 * @return void
 	 */
 	public static function bootTaggableTrait()
-	{
+    {
+        // If Untagging on Delete
 		if(static::untagOnDelete()) {
 			static::deleting(function($model) {
 				$model->untag();
@@ -172,15 +173,21 @@ trait TaggableTrait {
 		$tagName = trim($tagName);
 		
 		$normalizer = config('tagging.normalizer');
-		$normalizer = empty($normalizer) ? '\Conner\Tagging\TaggingUtil::slug' : $normalizer;
+        $normalizer = empty($normalizer) 
+            ? '\Conner\Tagging\TaggingUtil::slug' 
+            : $normalizer;
 
 		$tagSlug = call_user_func($normalizer, $tagName);
 		
-		$previousCount = $this->tagged()->where('tag_slug', '=', $tagSlug)->take(1)->count();
-		if($previousCount >= 1) { return; }
+        $previousCount = $this->tagged()
+            ->where('tag_slug', '=', $tagSlug)->take(1)->count();
+        
+        if($previousCount >= 1) { return; }
 		
 		$displayer = config('tagging.displayer');
-		$displayer = empty($displayer) ? '\Illuminate\Support\Str::title' : $displayer;
+        $displayer = empty($displayer) 
+            ? '\Illuminate\Support\Str::title' 
+            : $displayer;
 		
 		$tagged = new Tagged(array(
 			'tag_name'=>call_user_func($displayer, $tagName),
@@ -202,7 +209,9 @@ trait TaggableTrait {
 		$tagName = trim($tagName);
 		
 		$normalizer = config('tagging.normalizer');
-		$normalizer = empty($normalizer) ? '\Conner\Tagging\TaggingUtil::slug' : $normalizer;
+        $normalizer = empty($normalizer) 
+            ? '\Conner\Tagging\TaggingUtil::slug' 
+            : $normalizer;
 		
 		$tagSlug = call_user_func($normalizer, $tagName);
 		

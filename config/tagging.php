@@ -13,5 +13,5 @@ return array(
 	
 	// when deleting a model, remove all the tags first
 	'untag_on_delete' => true,
-		
+    
 );

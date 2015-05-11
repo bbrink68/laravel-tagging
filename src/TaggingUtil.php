@@ -1,5 +1,7 @@
 <?php namespace Conner\Tagging;
 
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 /**
  * Utility functions to help with various tagging functionality.
  *
@@ -158,7 +160,8 @@ class TaggingUtil {
 		if(!$tag) {
 			$tag = new Tag;
 			$tag->name = $tagString;
-			$tag->slug = $tagSlug;
+            $tag->slug = $tagSlug;
+            $tag->department = $this->getCurrentUserDept();
 			$tag->suggest = false;
 			$tag->save();
 		}
@@ -187,5 +190,14 @@ class TaggingUtil {
 			$tag->save();
 		}
 	}
-	
+    
+    /**
+     * Get Authed Users Department
+     */
+    private function getCurrentUserDept() {
+        $user = JWTAuth::parseToken()->toUser();
+        if ($user) {
+            return $user->dept;
+        }
+    }
 }
