@@ -1,8 +1,6 @@
 <?php namespace Conner\Tagging;
 
 
-use Tymon\JWTAuth\Facades\JWTAuth;
-
 /**
  * Utility functions to help with various tagging functionality.
  *
@@ -52,11 +50,8 @@ class TaggingUtil {
 		$tag = Tag::where('slug', '=', $tagSlug)
             ->where('department', $tagDept)->first();
 
-        // Grab User
-        $user = JWTAuth::parseToken()->toUser();
-
         // Create if not exists
-		if ( ! $tag && $user->hasRole('Training Supervisor')) {
+		if ( ! $tag) {
 			$tag = new Tag;
 			$tag->name = $tagString;
             $tag->slug = $tagSlug;
@@ -64,12 +59,10 @@ class TaggingUtil {
 			$tag->suggest = false;
 			$tag->save();
 		}
-        // If we created the tag or it already existed
-		if ($tag) {
-            // Increment
-            $tag->count = $tag->count + $count;
-            $tag->save();
-        }
+
+        // Increment
+        $tag->count = $tag->count + $count;
+        $tag->save();
 	}
 
     /**
