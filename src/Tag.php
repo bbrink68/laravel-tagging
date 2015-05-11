@@ -50,8 +50,8 @@ class Tag extends Eloquent {
         
         // Create New Validator
         $validator = \Validator::make(
-			array('name' => $this->name),
-			array('name' => 'required|min:1')
+			array('name' => $this->name, 'department' => $this->department),
+            array('name' => 'required|min:1', 'department' => 'required')
 		);
 
         // Good Validation
@@ -66,7 +66,7 @@ class Tag extends Eloquent {
             // Save New Tag
             parent::save($options);
 		} else {
-			throw new \Exception('Tag Name is required');
+			throw new \Exception('Tag Name & Department Are Required');
 		}
 	}
 	
@@ -90,5 +90,12 @@ class Tag extends Eloquent {
         // Set Name to Prettier Version
 		$this->attributes['name'] = call_user_func($displayer, $value);
 	}
-	
+
+    /**
+     * Department auto-mutator
+     */
+    public function setDepartmentAttribute($value) {
+        // To Lowercase 
+        $this->attributes['department'] = strtolower($value);
+    }
 }
