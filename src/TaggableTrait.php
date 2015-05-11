@@ -101,13 +101,14 @@ trait TaggableTrait {
 			$this->removeTag($tagName);
 		}
 	}
-	
-	/**
-	 * Replace the tags from this model
-	 *
-	 * @param $tagName string or array
-	 */
-	public function retag($tagNames)
+
+    /**
+     * Replace the tags from this model
+     *
+     * @param $tagNames
+     * @param $tagDept
+     */
+	public function retag($tagNames, $tagDept)
 	{
 		$tagNames = TaggingUtil::makeTagArray($tagNames);
 		$currentTagNames = $this->tagNames();
@@ -119,7 +120,7 @@ trait TaggableTrait {
 			$this->removeTag($tagName);
 		}
 		foreach($additions as $tagName) {
-			$this->addTag($tagName);
+			$this->addTag($tagName, $tagDept);
 		}
 	}
 	
@@ -166,12 +167,15 @@ trait TaggableTrait {
 	/**
 	 * Adds a single tag
 	 *
-	 * @param $tagName string
+     * @param $tagName string
+     * @param $tagDept string
 	 */
-	private function addTag($tagName)
+	private function addTag($tagName, $tagDept = 'support')
 	{
-		$tagName = trim($tagName);
-		
+        $tagName = trim($tagName);
+        $tagDept = trim(strtolower($tagDept));
+
+        // Normalize Name
 		$normalizer = config('tagging.normalizer');
         $normalizer = empty($normalizer) 
             ? '\Conner\Tagging\TaggingUtil::slug' 
@@ -183,12 +187,13 @@ trait TaggableTrait {
             ->where('tag_slug', '=', $tagSlug)->take(1)->count();
         
         if($previousCount >= 1) { return; }
-		
+
+        // Create Pretty Version
 		$displayer = config('tagging.displayer');
         $displayer = empty($displayer) 
             ? '\Illuminate\Support\Str::title' 
             : $displayer;
-		
+
 		$tagged = new Tagged(array(
 			'tag_name'=>call_user_func($displayer, $tagName),
 			'tag_slug'=>$tagSlug,
@@ -196,7 +201,8 @@ trait TaggableTrait {
 		
 		$this->tagged()->save($tagged);
 
-		TaggingUtil::incrementCount($tagName, $tagSlug, 1);
+        // Increment Count & Save If Not Exists
+		TaggingUtil::incrementCount($tagName, $tagDept, $tagSlug, 1);
 	}
 	
 	/**
