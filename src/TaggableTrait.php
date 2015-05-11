@@ -219,6 +219,10 @@ trait TaggableTrait {
 
             // Increment Count & Save If Not Exists
             TaggingUtil::incrementCount($tagName, $tagDept, $tagSlug, 1);
+
+        } else {
+            // Else Not Allowed, Probably Should Tell User
+            throw new ForbiddenTagCreation;
         }
 	}
 
