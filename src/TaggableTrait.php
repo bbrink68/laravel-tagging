@@ -1,6 +1,7 @@
 <?php namespace Conner\Tagging;
 
 use Illuminate\Support\Facades\Config;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 /**
  * Copyright (C) 2014 Robert Conner
@@ -157,8 +158,11 @@ trait TaggableTrait {
 	{
 		$tagNames = TaggingUtil::makeTagArray($tagNames);
 
+        // Normalize
 		$normalizer = config('tagging.normalizer');
-		$normalizer = empty($normalizer) ? '\Conner\Tagging\TaggingUtil::slug' : $normalizer;
+		$normalizer = empty($normalizer)
+            ? '\Conner\Tagging\TaggingUtil::slug'
+            : $normalizer;
 		
 		$tagNames = array_map($normalizer, $tagNames);
 
@@ -175,37 +179,47 @@ trait TaggableTrait {
 	 */
 	private function addTag($tagName, $tagDept = 'support')
 	{
+        // Grab User
+        $user = JWTAuth::parseToken()->toUser();
+
         $tagName = trim($tagName);
         $tagDept = trim(strtolower($tagDept));
 
-        // Normalize Name
-		$normalizer = config('tagging.normalizer');
-        $normalizer = empty($normalizer) 
-            ? '\Conner\Tagging\TaggingUtil::slug' 
-            : $normalizer;
+        // Find out if already exists.
+        $tagAlreadyExists = TaggingUtil::tagExists($tagName, $tagDept);
 
-		$tagSlug = call_user_func($normalizer, $tagName);
-		
-        $previousCount = $this->tagged()
-            ->where('tag_slug', '=', $tagSlug)->take(1)->count();
-        
-        if($previousCount >= 1) { return; }
+        // If Not Exists But Is Training Super or If Already Exists
+        if ((! $tagAlreadyExists && $user->hasRole('Training Supervisor')) || $tagAlreadyExists) {
 
-        // Create Pretty Version
-		$displayer = config('tagging.displayer');
-        $displayer = empty($displayer) 
-            ? '\Illuminate\Support\Str::title' 
-            : $displayer;
+            // Normalize Name
+            $normalizer = config('tagging.normalizer');
+            $normalizer = empty($normalizer)
+                ? '\Conner\Tagging\TaggingUtil::slug'
+                : $normalizer;
 
-		$tagged = new Tagged(array(
-			'tag_name' => call_user_func($displayer, $tagName),
-			'tag_slug' => $tagSlug,
-		));
-		
-		$this->tagged()->save($tagged);
+            $tagSlug = call_user_func($normalizer, $tagName);
 
-        // Increment Count & Save If Not Exists
-		TaggingUtil::incrementCount($tagName, $tagDept, $tagSlug, 1);
+            $previousCount = $this->tagged()
+                ->where('tag_slug', '=', $tagSlug)->take(1)->count();
+
+            if($previousCount >= 1) { return; }
+
+            // Create Pretty Version
+            $displayer = config('tagging.displayer');
+            $displayer = empty($displayer)
+                ? '\Illuminate\Support\Str::title'
+                : $displayer;
+
+            $tagged = new Tagged(array(
+                'tag_name' => call_user_func($displayer, $tagName),
+                'tag_slug' => $tagSlug,
+            ));
+
+            $this->tagged()->save($tagged);
+
+            // Increment Count & Save If Not Exists
+            TaggingUtil::incrementCount($tagName, $tagDept, $tagSlug, 1);
+        }
 	}
 
     /**

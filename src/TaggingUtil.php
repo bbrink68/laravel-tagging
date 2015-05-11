@@ -98,6 +98,17 @@ class TaggingUtil {
 	}
 
     /**
+     * @param $tagName
+     * @param $tagDept
+     * @return bool
+     */
+    public static function tagExists($tagName, $tagDept) {
+        $found = Tag::where('name', '=', $tagName)
+            ->where('department', $tagDept)->count();
+        return $found > 0;
+    }
+
+    /**
      * Create a web friendly URL slug from a string.
      *
      * Although supported, transliteration is discouraged because
