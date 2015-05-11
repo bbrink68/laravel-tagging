@@ -95,7 +95,15 @@ class Tag extends Eloquent {
      * Department auto-mutator
      */
     public function setDepartmentAttribute($value) {
-        // To Lowercase 
-        $this->attributes['department'] = strtolower($value);
+        // To Lowercase
+        $value = strtolower($value);
+
+        // Make Sure A Valid Department is being used
+        // else, default to support 
+        if (!in_array($value, relevant_depts())) {
+            $value = 'support';
+        }
+
+        $this->attributes['department'] = $value;
     }
 }
