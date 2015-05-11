@@ -227,7 +227,7 @@ trait TaggableTrait {
 		$tagSlug = call_user_func($normalizer, $tagName);
 
         // If can find tag - decrement count
-		if($count = $this->tagged()->where('tag_slug', '=', $tagSlug)->where('department', $tagDept)->delete()) {
+		if($count = $this->tagged()->where('tag_slug', '=', $tagSlug)->delete()) {
 			TaggingUtil::decrementCount($tagName, $tagDept, $tagSlug, $count);
 		}
 	}
